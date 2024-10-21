@@ -1,8 +1,8 @@
 # をぴの里♨YTコメントツール
 
-🔗[YTコメントツール](wopi_cmt_tool/bin/)
-🔗[説明書](wopi_cmt_tool/README.md)
-🔗[ソースコード](wopi_cmt_tool/yt_cmt_pytchat_gui.py)
+🔗[YTコメントツール](/wopi_cmt_tool/bin/)
+🔗[説明書](/wopi_cmt_tool/README.md)
+🔗[ソースコード](/wopi_cmt_tool/yt_cmt_pytchat_gui.py)
 
 ![alt text](/doc/wopi_cmt_tool.png)
 

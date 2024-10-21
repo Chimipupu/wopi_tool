@@ -8,11 +8,11 @@
 # 目次
 
 【ソースコード】
-- [をぴの里♨PT管理ツール HTML](wopi_mh_pt_yt_live.html)
-- [をぴの里♨PT管理ツール CSS](src/css/wopi_mh_pt_yt_live.css)
-- [をぴの里♨PT管理ツール javascript](src/js/wopi_mh_pt_yt_live.js)
+- [をぴの里♨PT管理ツール HTML](/wopi_mh_pt_tool/wopi_mh_pt_yt_live.html)
+- [をぴの里♨PT管理ツール CSS](/wopi_mh_pt_tool/src/css/wopi_mh_pt_yt_live.css)
+- [をぴの里♨PT管理ツール javascript](/wopi_mh_pt_tool/src/js/wopi_mh_pt_yt_live.js)
 
 【ドキュメント】
-- [をぴの里♨PT管理ツール 詳細設計書](doc/をぴの里♨PT管理ツール詳細設計書.md)
-- [をぴの里♨PT管理ツール API仕様書](doc/をぴの里♨PT管理ツールAPI仕様書.md)
-- [をぴの里♨PT管理ツール 単体テスト](doc/をぴの里♨PT管理ツール単体テスト.md)
+- [をぴの里♨PT管理ツール 詳細設計書](/wopi_mh_pt_tool/doc/をぴの里♨PT管理ツール詳細設計書.md)
+- [をぴの里♨PT管理ツール API仕様書](/wopi_mh_pt_tool/doc/をぴの里♨PT管理ツールAPI仕様書.md)
+- [をぴの里♨PT管理ツール 単体テスト](/wopi_mh_pt_tool/doc/をぴの里♨PT管理ツール単体テスト.md)
