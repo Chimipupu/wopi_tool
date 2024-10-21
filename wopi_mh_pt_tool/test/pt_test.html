@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>をぴの里♨PT管理ツール単体テスト【PT割り振り】</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffeef0;
+            color: #333;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #d36b6b;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #f8b4b4;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #fddde1;
+            color: #d36b6b;
+        }
+        tr:nth-child(even) {
+            background-color: #fceef2;
+        }
+        tr:nth-child(odd) {
+            background-color: #fff;
+        }
+        thead {
+            background-color: #fddde1;
+        }
+        caption {
+            font-size: 1.5em;
+            margin: 10px;
+            color: #d36b6b;
+        }
+    </style>
+</head>
+<body>
+    <h1>をぴの里♨PT管理ツール単体テスト【PT割り振り】</h1>
+    <h2>均等優先モード</h2>
+    <table>
+        <caption>テスト結果</caption>
+        <thead>
+            <tr>
+                <th>集会所</th>
+                <th>PT数</th>
+                <th>人数</th>
+                <th>足湯</th>
+            </tr>
+        </thead>
+        <tbody id="equalPriorityTable">
+        </tbody>
+    </table>
+
+    <h2>PT効率優先モード</h2>
+    <table>
+        <caption>テスト結果</caption>
+        <thead>
+            <tr>
+                <th>集会所</th>
+                <th>PT数</th>
+                <th>人数</th>
+                <th>足湯</th>
+            </tr>
+        </thead>
+        <tbody id="ptEfficiencyTable">
+        </tbody>
+    </table>
+
+    <script>
+        // 均等優先
+        function calculateEqualPriorityGroups(n) {
+            let groups = [];
+            const numGroups = Math.ceil(n / 4);
+            const groupSize = Math.floor(n / numGroups);
+            const remainder = n % numGroups;
+
+            for (let i = 0; i < numGroups; i++) {
+                groups.push(groupSize + (i < remainder ? 1 : 0));
+            }
+
+            return { groups, remainder: numGroups - groups.length };
+        }
+
+        // PT効率優先
+        function calculatePtEfficiencyGroups(n) {
+            let groups = [];
+            let remaining = n;
+
+            while (remaining > 4) {
+                groups.push(4);
+                remaining -= 4;
+            }
+
+            if (remaining > 0) {
+                groups.push(remaining);
+            }
+
+            if (groups[groups.length - 1] === 1) {
+                groups.pop(); // Remove 1-member group
+            }
+
+            return { groups, remainder: remaining === 1 ? 1 : 0 };
+        }
+
+        function generateTable() {
+            const equalPriorityTable = document.getElementById('equalPriorityTable');
+            const ptEfficiencyTable = document.getElementById('ptEfficiencyTable');
+
+            equalPriorityTable.innerHTML = ''; // Clear previous table data
+            ptEfficiencyTable.innerHTML = ''; // Clear previous table data
+
+            for (let i = 2; i <= 16; i++) {
+                const equalResult = calculateEqualPriorityGroups(i);
+                const ptResult = calculatePtEfficiencyGroups(i);
+
+                const equalGroupCount = equalResult.groups.length;
+                const equalGroupSizes = equalResult.groups.join(', ');
+                const equalRemainder = equalResult.remainder;
+
+                const ptGroupCount = ptResult.groups.length;
+                const ptGroupSizes = ptResult.groups.join(', ');
+                const ptRemainder = ptResult.remainder;
+
+                // Add rows for Equal Priority Mode
+                let row = document.createElement('tr');
+                row.innerHTML = `<td>${i}</td><td>${equalGroupCount}</td><td>${equalGroupSizes}</td><td>${equalRemainder}</td>`;
+                equalPriorityTable.appendChild(row);
+
+                // Add rows for PT Efficiency Mode
+                row = document.createElement('tr');
+                row.innerHTML = `<td>${i}</td><td>${ptGroupCount}</td><td>${ptGroupSizes}</td><td>${ptRemainder}</td>`;
+                ptEfficiencyTable.appendChild(row);
+            }
+        }
+
+        // Generate the tables on page load
+        generateTable();
+    </script>
+</body>
+</html>

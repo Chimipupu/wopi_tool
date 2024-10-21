@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>をぴの里♨ DBお引越しツール🚚 Ver0.1.0</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffeef8;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #ff69b4;
+        }
+
+        h2 {
+            color: #ff69b4;
+            font-size: 24px;
+        }
+
+        button {
+            background-color: #ff1493;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #ff69b4;
+        }
+
+        .file-input-container {
+            display: inline-block;
+            /* block から inline-block に変更 */
+            position: relative;
+            margin: 20px;
+        }
+
+        .file-input-button {
+            font-size: 16px;
+            padding: 10px 20px;
+            background-color: #ff69b4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            outline: none;
+            position: relative;
+            z-index: 1;
+            /* ボタンを前面に配置 */
+        }
+
+        .file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 2;
+            /* inputをボタンに対応する範囲のみに制限 */
+        }
+
+
+        /* 固定幅のスタイルを設定 */
+        td.fixed-width {
+            width: 200px;
+            /* 固定したい幅を設定 */
+            word-wrap: break-word;
+            /* 長いテキストがセルの幅を超える場合に折り返す */
+            overflow: hidden;
+            /* コンテンツがセルを超える場合に隠す */
+            white-space: nowrap;
+            /* テキストが折り返されずに一行に表示されるようにする（必要に応じて変更） */
+        }
+
+        /* テーブルのスタイル */
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            display: none;
+            /* Initially hide the table */
+        }
+
+        /* ヘッダーのセルのスタイル */
+        th {
+            background-color: #ff69b4;
+            color: white;
+        }
+
+        /* デフォルトのセルのスタイル */
+        td {
+            border: 1px solid #ff1493;
+            padding: 10px;
+            text-align: left;
+            background-color: #fff;
+        }
+
+        /* テーブルが表示されたときに適用するスタイル */
+        table.show {
+            display: table;
+            /* テーブルが表示されたときに適用 */
+        }
+
+        #console {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #ff1493;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>をぴの里♨ DBお引越しツール🚚 Ver0.1.0</h1>
+    <div id="console"></div>
+    <div class="file-input-container">
+        <button class="file-input-button" id="fileLoadButton">DB選択</button>
+        <input type="file" id="fileInput" class="file-input" accept=".json" onchange="handleFileSelect(event)">
+    </div>
+    <button id="localStorageDLBTN" type="button" onclick="localStorageDowonLoad()">バックアップ</button>
+    <button id="localStorageRestoreBTN" type="button" onclick="JSON2LcalStorage()">リストア</button>
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th class="fixed-width">Key</th>
+                <th class="fixed-width">Value</th>
+            </tr>
+        </thead>
+        <tbody id="dataTableBody">
+            <!-- Data rows will be inserted here -->
+        </tbody>
+    </table>
+
+<script>
+        // ページ読み込み時のみ元
+        window.onload = function () {
+            document.getElementById('console').innerText += "【使い方】\n";
+            document.getElementById('console').innerText += "『バックアップ』...DBをDownload\n";
+            document.getElementById('console').innerText += "『リストア』...DBをリストア（復元）\n";
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file && file.type === 'application/json') {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const fileData = JSON.parse(event.target.result);
+                    console.log("File data read:", fileData);
+                    // document.getElementById('console').innerText = "File data read:\n" + JSON.stringify(fileData, null, 2);
+                    // ここでファイルデータの処理
+                };
+                reader.readAsText(file);
+            } else {
+                console.error("Invalid file format. Please select a JSON file.");
+                // document.getElementById('console').innerText = "Invalid file format. Please select a JSON file.";
+            }
+        }
+
+        // データを表でHTML表示
+        function showData(footBathMembers, members, quests) {
+            const data = [
+                { key: 'members', value: members },
+                { key: 'footBathMembers', value: footBathMembers },
+                { key: 'quests', value: quests }
+            ];
+
+            const table = document.getElementById('dataTable');
+            const tableBody = document.getElementById('dataTableBody');
+            tableBody.innerHTML = ''; // Clear any existing rows
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+
+                // Key Cell
+                const keyCell = document.createElement('td');
+                keyCell.textContent = item.key;
+                keyCell.style.fontWeight = 'bold';
+                row.appendChild(keyCell);
+
+                // Value Cell
+                const valueCell = document.createElement('td');
+                if (Array.isArray(item.value)) {
+                    // Convert each sub-array into a string and add <br> after each
+                    const formattedValue = item.value.map(subItem => JSON.stringify(subItem)).join('<br>');
+                    valueCell.innerHTML = `<pre>${formattedValue}</pre>`;
+                } else {
+                    valueCell.textContent = item.value;
+                }
+
+                row.appendChild(valueCell);
+                tableBody.appendChild(row);
+            });
+
+            // Display the table after data is shown
+            table.style.display = 'table';
+
+            console.log("LocalStorage Data displayed in table.");
+            // document.getElementById('console').innerText = "LocalStorage Data displayed in table.";
+        }
+
+        // JSON to localStorage Save
+        function JSON2LcalStorage() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (file && file.type === 'application/json') {
+                const reader = new FileReader();
+
+                reader.onload = function (event) {
+                    try {
+                        // JSONファイル読み出し
+                        const fileData = JSON.parse(event.target.result);
+                        console.log("JSON Read Data:", fileData);
+                        // document.getElementById('console').innerText = "JSON Read Data:\n" + JSON.stringify(fileData, null, 2);
+
+                        // ここで画面にデータを出しとく
+                        footBathMembers = JSON.stringify(fileData.footBathMembers);
+                        members = JSON.stringify(fileData.members);
+                        quests = JSON.stringify(fileData.quests);
+                        showData(footBathMembers, members, quests);
+
+                        // ローカルストレージに保存
+                        localStorage.setItem('members', JSON.stringify(fileData.members || {}));
+                        localStorage.setItem('footBathMembers', JSON.stringify(fileData.footBathMembers || {}));
+                        localStorage.setItem('quests', JSON.stringify(fileData.quests || {}));
+
+                        console.log("JSON to localStorage Data Save OK!!!");
+                        // document.getElementById('console').innerText += "\n\nJSON to localStorage Data Save OK!!!";
+                    } catch (error) {
+                        console.error("[ERR]: JSON read Data fail!:", error);
+                        // document.getElementById('console').innerText = "[ERR]: JSON read Data fail!: " + error.message;
+                    }
+                };
+
+                reader.readAsText(file);
+            } else {
+                console.error("無効なファイル形式です。JSONファイルを選択してください。");
+                // document.getElementById('console').innerText = "無効なファイル形式です。JSONファイルを選択してください。";
+            }
+        }
+
+        // localStorage to JSON(savedata-YYYYMMDD.json) Download
+        function localStorageDowonLoad() {
+            const footBathMembers = localStorage.getItem('footBathMembers');
+            const members = localStorage.getItem('members');
+            const quests = localStorage.getItem('quests');
+
+            if (footBathMembers || members || quests) {
+                const date = new Date();
+                const formattedDate = date.toISOString().slice(0, 10).replace(/-/g, '');
+                const filename = `wopi_db_${formattedDate}.json`;
+
+                const data = {
+                    footBathMembers: footBathMembers ? JSON.parse(footBathMembers) : {},
+                    members: members ? JSON.parse(members) : {},
+                    quests: quests ? JSON.parse(quests) : {}
+                };
+
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                console.log("LocalStorage Download (JSON :", filename);
+                // document.getElementById('console').innerText = "LocalStorage BackUped";
+            } else {
+                console.error("[ERR]: LocalStorage No Data");
+                // document.getElementById('console').innerText = "[ERR]: LocalStorage No Data";
+            }
+        }
+    </script>
+</body>
+
+</html>

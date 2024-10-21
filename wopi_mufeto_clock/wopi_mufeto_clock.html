@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>世界時計</title>
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            background-color: #f0f8ff;
+            color: #333;
+        }
+        h1 {
+            color: #4a90e2;
+            margin-bottom: 20px;
+        }
+        .clock {
+            display: inline-block;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            margin: 10px;
+            width: 250px;
+            font-size: 20px;
+            color: #4a4a4a;
+            border: 2px solid #4a90e2;
+            text-align: center;
+        }
+        .clock .country {
+            font-size: 24px;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        .clock .time {
+            font-weight: bold;
+            font-size: 24px;
+            border: 2px solid #4a90e2;
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .countdown {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #e94e77;
+            border: 2px solid #4a90e2;
+            padding: 20px;
+            border-radius: 15px;
+            display: inline-block;
+            width: 350px;
+            text-align: center;
+            background-color: #fff5f5;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .countdown .title {
+            font-size: 22px;
+            color: #e94e77;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .countdown .date {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .countdown .remaining {
+            font-size: 20px;
+            color: #e94e77;
+        }
+        .countdown .icon {
+            font-size: 30px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>をぴの里♨ホワイト企業</h1>
+    <div id="japan-clock" class="clock"></div>
+    <div id="washington-clock" class="clock"></div>
+    <div id="london-clock" class="clock"></div>
+    <div id="beijing-clock" class="clock"></div>
+    <div id="seoul-clock" class="clock"></div>
+    <div id="india-clock" class="clock"></div>
+    <div id="sydney-clock" class="clock"></div>
+    <div id="moscow-clock" class="clock"></div>
+
+    <div class="countdown" id="countdown">
+        <div class="icon">♨️</div>
+        <div id="countdown-content"></div>
+    </div>
+
+    <py-script>
+        import asyncio
+        import js
+        from datetime import datetime, timedelta, timezone
+
+        def format_time(time):
+            return time.strftime("%Y-%m-%d %H:%M:%S")
+
+        def update_clocks():
+            now_utc = datetime.utcnow()
+
+            # 各タイムゾーンのオフセット
+            offsets = {
+                'japan': 9,
+                'washington': -4,
+                'london': 1,
+                'beijing': 8,
+                'seoul': 9,
+                'india': 5.5,
+                'sydney': 11,
+                'moscow': 3
+            }
+
+            tz_info = {
+                'japan': ('🇯🇵', '東京'),
+                'washington': ('🇺🇸', 'ワシントン'),
+                'london': ('🇬🇧', 'ロンドン'),
+                'beijing': ('🇨🇳', '北京'),
+                'seoul': ('🇰🇷', 'ソウル'),
+                'india': ('🇮🇳', 'ニューデリー'),
+                'sydney': ('🇦🇺', 'シドニー'),
+                'moscow': ('🇷🇺', 'モスクワ')
+            }
+
+            for key, (flag, capital) in tz_info.items():
+                offset_hours = offsets[key]
+                if offset_hours % 1 == 0:
+                    offset = timezone(timedelta(hours=int(offset_hours)))
+                else:
+                    offset = timezone(timedelta(hours=int(offset_hours), minutes=int((offset_hours % 1) * 60)))
+
+                local_time = now_utc.replace(tzinfo=timezone.utc).astimezone(offset)
+                js.document.getElementById(f'{key}-clock').innerHTML = \
+                    f'<div class="country">{capital} {flag}</div>' \
+                    f'<div class="time">{format_time(local_time)}</div>'
+
+            # ムフェトのカウントダウン
+            japan_offset = timezone(timedelta(hours=9))
+            now_japan = now_utc.replace(tzinfo=timezone.utc).astimezone(japan_offset)
+
+            # 基準日と周期の設定
+            base_start_time = datetime(2024, 5, 3, 9, 0, 0, tzinfo=japan_offset)
+            period_length = timedelta(weeks=2)  # 2週間ごとの周期
+
+            # 現在がムフェト期間かマム期間かを判断
+            def get_current_period(start_time, now_time, period_length):
+                elapsed_time = now_time - start_time
+                periods_elapsed = elapsed_time // period_length
+                current_period_start = start_time + periods_elapsed * period_length
+                current_period_end = current_period_start + period_length
+
+                # 偶数期間がムフェト、奇数期間がマムと仮定
+                if periods_elapsed % 2 == 0:
+                    return "ムフェト", current_period_start, current_period_end
+                else:
+                    return "マム", current_period_start, current_period_end
+
+            # 現在の期間を取得
+            current_period, period_start_time, period_end_time = get_current_period(base_start_time, now_japan, period_length)
+
+            if current_period == "ムフェト":
+                # 残りのムフェト期間を計算
+                remaining_time = period_end_time - now_japan
+                countdown_text = (
+                    '<div class="title">ムフェト期間（をぴの里 繁忙期）</div>' +
+                    f'<div class="date">ムフェト開始日: {period_start_time.strftime("%Y-%m-%d %H:%M:%S")}</div>' +
+                    f'<div class="date">ムフェト終了日: {period_end_time.strftime("%Y-%m-%d %H:%M:%S")}</div>' +
+                    f'<div class="remaining">残り日数: {remaining_time.days}日 {remaining_time.seconds // 3600}時間 {remaining_time.seconds % 3600 // 60}分</div>'
+                )
+            else:
+                # 次のムフェト期間の開始時間を計算
+                next_mhf_start_time = period_end_time  # 次のムフェト開始は現在のマム期間が終わった後
+                countdown_text = (
+                    '<div class="title">マム期間</div>' +
+                    f'<div class="remaining">来期ムフェト: {next_mhf_start_time.strftime("%Y-%m-%d %H:%M:%S")}</div>'
+                )
+
+            js.document.getElementById('countdown-content').innerHTML = countdown_text
+
+        # 初期表示
+        update_clocks()
+
+        # 1秒ごとに更新
+        async def periodic_update():
+            while True:
+                update_clocks()
+                await asyncio.sleep(1)
+
+        # メインコルーチンをスケジュールする
+        asyncio.ensure_future(periodic_update())
+    </py-script>
+</body>
+</html>

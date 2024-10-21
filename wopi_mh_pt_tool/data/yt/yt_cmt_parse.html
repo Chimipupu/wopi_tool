@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>をぴの里♨社員コメント解析ツール</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #ffe4e1;
+            color: #ff69b4;
+        }
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            border: 2px solid #ff69b4;
+            background-color: #fff0f5;
+        }
+        th, td {
+            border: 1px solid #ff69b4;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #ff1493;
+            color: white;
+        }
+        td {
+            color: #ff69b4;
+        }
+        h1 {
+            color: #ff1493;
+        }
+        input[type="file"] {
+            margin: 20px;
+            padding: 10px;
+            border: 2px solid #ff69b4;
+            border-radius: 5px;
+            background-color: #fff0f5;
+        }
+        button {
+            margin: 10px;
+            padding: 10px;
+            border: 2px solid #ff69b4;
+            border-radius: 5px;
+            background-color: #fff0f5;
+            color: #ff69b4;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #ff69b4;
+            color: white;
+        }
+        select {
+            margin: 20px;
+            padding: 10px;
+            border: 2px solid #ff69b4;
+            border-radius: 5px;
+            background-color: #fff0f5;
+            color: #ff69b4;
+            font-size: 16px;
+        }
+        .keyword-col {
+            text-align: left;
+            max-width: 300px;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+
+<h1>をぴの里♨社員コメント解析ツール</h1>
+<input type="file" id="fileInput" accept=".json" />
+
+<select id="keywordSelect">
+    <option value="">--- キーワードで並び替え ---</option>
+    <option value="出社">出社</option>
+    <option value="足湯">足湯</option>
+    <option value="退社">退社</option>
+    <option value="初見">初見</option>
+</select>
+
+<select id="sortSelect">
+    <option value="nameAsc">名前昇順</option>
+    <option value="nameDesc">名前降順</option>
+    <option value="keywordAsc">キーワード昇順</option>
+    <option value="keywordDesc">キーワード降順</option>
+</select>
+
+<button onclick="sortTable()">並び替え</button>
+
+<table id="dataTable">
+    <thead>
+        <tr>
+            <th>名前</th>
+            <th>コメント</th>
+            <th>出社</th>
+            <th>足湯</th>
+            <th>退社</th>
+            <th>初見</th>
+        </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+
+<script>
+    let authorMap = new Map();
+    const keywordGroups = {
+        '出社': ["参加", "出社", "出勤"],
+        '足湯': ["足湯", "休憩", "休む", "あしゆ"],
+        '退社': ["退勤", "退社"],
+        '初見': ["初見"]
+    };
+
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const content = e.target.result;
+                    parseJSON(content);
+                } catch (error) {
+                    alert("ファイルの読み込みに失敗しました: " + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+    });
+
+    function parseJSON(content) {
+        const lines = content.split('\n');
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = ''; // テーブルの内容をリセット
+
+        authorMap.clear(); // mapをリセット
+
+        lines.forEach(line => {
+            if (line.trim() === '') {
+                return; // 空行はスキップ
+            }
+
+            let data;
+            try {
+                data = JSON.parse(line);
+            } catch (error) {
+                console.error("JSONのパースに失敗しました: " + error.message);
+                return; // 次の行に進む
+            }
+
+            try {
+                if (data.replayChatItemAction && data.replayChatItemAction.actions) {
+                    const actions = data.replayChatItemAction.actions;
+                    if (Array.isArray(actions)) {
+                        actions.forEach(action => {
+                            if (action.addChatItemAction) {
+                                const chatItem = action.addChatItemAction.item;
+                                if (chatItem && chatItem.liveChatTextMessageRenderer) {
+                                    const renderer = chatItem.liveChatTextMessageRenderer;
+
+                                    const authorName = renderer.authorName ? renderer.authorName.simpleText : 'Unknown';
+                                    let commentContent = 'No comment';
+                                    try {
+                                        commentContent = renderer.message && renderer.message.runs && renderer.message.runs[0] ? renderer.message.runs[0].text : 'No comment';
+                                    } catch (error) {
+                                        console.error("コメントのパースに失敗しました: " + error.message);
+                                        return; // 次のコメントに進む
+                                    }
+
+                                    if (!authorMap.has(authorName)) {
+                                        authorMap.set(authorName, {
+                                            comments: [],
+                                            keywordCounts: Object.keys(keywordGroups).reduce((acc, groupName) => {
+                                                acc[groupName] = { count: 0, texts: [] };
+                                                return acc;
+                                            }, {})
+                                        });
+                                    }
+                                    const authorData = authorMap.get(authorName);
+                                    authorData.comments.push(commentContent);
+
+                                    // キーワードのカウントと集約
+                                    Object.entries(keywordGroups).forEach(([groupName, keywords]) => {
+                                        keywords.forEach(keyword => {
+                                            if (commentContent.includes(keyword)) {
+                                                authorData.keywordCounts[groupName].count++;
+                                                authorData.keywordCounts[groupName].texts.push(commentContent);
+                                            }
+                                        });
+                                    });
+                                }
+                            }
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error("データ処理中にエラーが発生しました: " + error.message);
+            }
+        });
+
+        // テーブルにデータを表示
+        updateTable();
+    }
+
+    function updateTable() {
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = ''; // テーブルの内容をリセット
+
+        authorMap.forEach((data, authorName) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${authorName}</td>
+                <td class="keyword-col">${data.comments.join('<br>')}</td>
+                ${Object.keys(keywordGroups).map(groupName => `
+                    <td class="keyword-col">
+                        ${data.keywordCounts[groupName].count} 回<br>
+                        ${data.keywordCounts[groupName].texts.join('<br>')}
+                    </td>
+                `).join('')}
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    function sortTable() {
+        const selectedKeywordGroup = document.getElementById('keywordSelect').value;
+        const sortOrder = document.getElementById('sortSelect').value;
+        let sortedEntries;
+
+        if (sortOrder === 'nameAsc') {
+            sortedEntries = Array.from(authorMap.entries()).sort((a, b) => a[0].localeCompare(b[0])); // 名前の昇順
+        } else if (sortOrder === 'nameDesc') {
+            sortedEntries = Array.from(authorMap.entries()).sort((a, b) => b[0].localeCompare(a[0])); // 名前の降順
+        } else if (sortOrder === 'keywordAsc' && selectedKeywordGroup && keywordGroups[selectedKeywordGroup]) {
+            sortedEntries = Array.from(authorMap.entries()).sort((a, b) => {
+                const keywordCountsA = a[1].keywordCounts[selectedKeywordGroup].count;
+                const keywordCountsB = b[1].keywordCounts[selectedKeywordGroup].count;
+                return keywordCountsA - keywordCountsB; // 昇順
+            });
+        } else if (sortOrder === 'keywordDesc' && selectedKeywordGroup && keywordGroups[selectedKeywordGroup]) {
+            sortedEntries = Array.from(authorMap.entries()).sort((a, b) => {
+                const keywordCountsA = a[1].keywordCounts[selectedKeywordGroup].count;
+                const keywordCountsB = b[1].keywordCounts[selectedKeywordGroup].count;
+                return keywordCountsB - keywordCountsA; // 降順
+            });
+        } else {
+            sortedEntries = Array.from(authorMap.entries());
+        }
+
+        authorMap = new Map(sortedEntries);
+        updateTable();
+    }
+</script>
+</body>
+</html>

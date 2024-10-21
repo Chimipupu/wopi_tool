@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>をぴの里♨PT管理ツール 【PT効率優先テスト】</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #fff0f5;
+        }
+        table {
+            width: 50%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            border: 2px solid #ff69b4;
+            background-color: #ffe4e1;
+        }
+        th, td {
+            border: 1px solid #ff69b4;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #ff1493;
+            color: white;
+        }
+        td {
+            color: #ff69b4;
+        }
+        h1 {
+            color: #ff69b4;
+        }
+        .odd-row {
+            background-color: #fcd5ce; /* 奇数の行の背景色 */
+        }
+        .even-row {
+            background-color: #ffe4e1; /* 偶数の行の背景色 */
+        }
+    </style>
+</head>
+<body>
+
+<h1>をぴの里♨PT管理ツール 【PT効率優先テスト】</h1>
+
+<table id="groupTable">
+    <thead>
+        <tr>
+            <th>人数</th>
+            <th>PT1</th>
+            <th>PT2</th>
+            <th>PT3</th>
+            <th>PT4</th>
+            <th>足湯</th>
+        </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+</table>
+
+<script>
+function groupPeople() {
+    const tableBody = document.getElementById('tableBody');
+    tableBody.innerHTML = ''; // テーブルの内容をリセット
+    
+    for (let numPeople = 1; numPeople <= 16; numPeople++) {
+        let remaining = numPeople;
+        const groups = [0, 0, 0, 0];  // グループ1から4の初期人数は0
+
+        if (numPeople > 4) {
+            // 4人グループを作成
+            let groupIndex = 0;
+            while (remaining >= 4 && groupIndex < 4) {
+                groups[groupIndex] = 4;
+                remaining -= 4;
+                groupIndex++;
+            }
+
+            // 残りが2人以上なら2人グループを作成
+            if (remaining >= 2 && groupIndex < 4) {
+                groups[groupIndex] = 2;
+                remaining -= 2;
+                groupIndex++;
+            }
+        } else {
+            // 4人以下の人数の場合、グループ人数はそのまま表示
+            groups[0] = remaining;
+            remaining = 0;
+        }
+
+        // 結果をテーブルに表示
+        const row = document.createElement('tr');
+        row.className = numPeople % 2 === 0 ? 'even-row' : 'odd-row';
+        row.innerHTML = `
+            <td>${numPeople}</td>
+            <td>${groups[0] > 0 ? groups[0] + '' : ''}</td>
+            <td>${groups[1] > 0 ? groups[1] + '' : ''}</td>
+            <td>${groups[2] > 0 ? groups[2] + '' : ''}</td>
+            <td>${groups[3] > 0 ? groups[3] + '' : ''}</td>
+            <td>${numPeople > 4 && remaining > 0 ? remaining : ''}</td>
+        `;
+        tableBody.appendChild(row);
+    }
+}
+
+// ページ読み込み時にグループ分けを実行
+groupPeople();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>をぴの里♨PT管理ツール YouTube Live版 Ver0.1.24YT</title>
+    <!-- CSS -->
+    <link rel="stylesheet" href="src/css/wopi_mh_pt_yt_live.css">
+</head>
+
+<body>
+    <h1>をぴの里♨PT管理ツール Ver0.1.24YTL</h1>
+    <div class="container">
+        <div class="employee-ytl-container">
+            <!-- 社員情報 -->
+            <div class="form-section">
+                <h2>社員情報🏙️</h2>
+                <form class="employee-form">
+                    <input id="name" type="text" placeholder="名前">
+                    <input id="hr" type="text" placeholder="HR">
+                    <input id="mr" type="text" placeholder="MR">
+                    <div class="employee-form-buttons">
+                        <select id="memberStatus">
+                            <option value="退社">退社</option>
+                            <option value="参加">参加</option>
+                            <option value="足湯♨">足湯♨</option>
+                            <option value="貼り主">貼り主</option>
+                        </select>
+                        <button id="addMemberBtn" type="button" onclick="addMember()">追加</button>
+                        <button id="changeMemberBtn" type="button" onclick="updateMember()">変更</button>
+                        <button id="removeMemberBtn" type="button" onclick="removeMember()">削除</button>
+                    </div>
+                </form>
+            </div>
+            <!-- YouTube Live関連 -->
+            <div class="ytl_section">
+                <h2>YouTubeライブ URL⚡</h2>
+                <form class="ytl-form">
+                    <input id="ytLiveURL" type="text" placeholder="YouTube Live URL">
+                    <div class="ytl-actions">
+                        <button id="connectYtLiveBtn" type="button" onclick="connectYtLive()">接続</button>
+                    </div>
+                    <h2>YouTubeアーカイブ URL🧊</h2>
+                    <input id="ytArchiveURL" type="text" placeholder="YouTube Live URL">
+                    <div class="ytl-actions">
+                        <button id="connectYtArchiveBtn" type="button" onclick="connectYtArchive()">接続</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 他のコンテンツ -->
+    <div class="view-container">
+        <!-- メンバー一覧 -->
+        <div>
+            <h2 id="headerText">集会場 (<span id="ghMemberCount">0</span>/16, 足湯:<span id="ashiYuCount">0</span>)</h2>
+            <div class="gh-actions">
+                <button id="displayMemberTglButton" type="button" onclick="displayMemberTgl()">集会場 or 全社員</button>
+                <button id="allMemberCorpOutButton" type="button" onclick="allMemberCorpOut()">全員退社</button>
+                <select id="memberSort">
+                    <option value="名前順">名前順ソート</option>
+                    <option value="HR順">HR順ソート</option>
+                    <option value="MR順">MR順ソート</option>
+                    <option value="状態順">状態順ソート</option>
+                </select>
+                <button id="sortMemberButton" type="button" onclick="sortMembers()">並び替え</button>
+            </div>
+            <div id="member_table"></div>
+        </div>
+
+        <!-- PT情報 -->
+        <div>
+            <h2>PT</h2>
+            <table id="group_table">
+                <thead>
+                    <tr>
+                        <th>PT</th>
+                        <th>メンバー</th>
+                        <th>人数</th>
+                        <th>クエスト</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- データはJavaScriptが処理 -->
+                </tbody>
+            </table>
+            <div class="pt-actions">
+                <button id="resetGroupsBtn" type="button" onclick="resetGroups()">リセット</button>
+                <button id="moveGroupsBtn" type="button" onclick="moveGroups()">手動</button>
+                <select id="generateGroupMode">
+                    <option value="均等">均等優先</option>
+                    <option value="効率">効率優先</option>
+                </select>
+                <button id="generateGroupsBtn" type="button" onclick="generateGroups()">自動</button>
+                <button id="randomizeQuestsBtn" type="button" onclick="randomizeQuests()">クエ自動</button>
+            </div>
+            <!-- 足湯♨一覧 -->
+            <h2>足湯♨一覧</h2>
+            <table id="footBath_table">
+                <thead>
+                    <tr>
+                        <th>足湯メンバー</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- データはJavaScriptが処理 -->
+                </tbody>
+            </table>
+            <!-- クエスト情報 -->
+            <h2>クエスト情報</h2>
+            <form class="quest-form">
+                <input id="questName" type="text" placeholder="クエスト名">
+                <div class="quest-actions">
+                    <button id="addQuestBtn" type="button" onclick="addQuest()">追加</button>
+                    <button id="updateQuestBtn" type="button" onclick="updateQuest()">変更</button>
+                    <button id="removeQuestBtn" type="button" onclick="removeQuest()">削除</button>
+                </div>
+            </form>
+            <h2>クエスト一覧</h2>
+            <table id="quest_table">
+                <thead>
+                    <tr>
+                        <th>クエスト名</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- データはJavaScriptが処理 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="src/js/wopi_mh_pt_yt_live.js" defer></script>
+</body>
+
+</html>

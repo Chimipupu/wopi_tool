@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>をぴの里♨PT管理ツール単体テスト【メンバー情報表示切替】</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f8ff;
+            margin: 20px;
+        }
+        h1 {
+            color: #ff69b4;
+            font-size: 32px;
+        }
+        h2 {
+            color: #ff69b4;
+            font-size: 24px;
+        }
+        button {
+            font-size: 16px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #ff69b4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #ff1493;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .section {
+            width: 50%;
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #ff69b4;
+            border-radius: 10px;
+            background-color: #fff;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        table, th, td {
+            border: 2px solid #ff69b4;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #ffb6c1;
+            color: white;
+        }
+        td {
+            background-color: #ffe4e1;
+        }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1>をぴの里♨PT管理ツール単体テスト【メンバー情報表示切替】</h1>
+        <div class="section">
+            <h2 id="headerText">集会場 (<span id="memberCount">0</span>/16)</h2>
+            <button id="tglMemberDisplay">切替</button>
+            <div id="member_table"></div>
+        </div>
+    </div>
+
+    <script>
+    let g_members = []; // [グローバル]メンバー配列
+
+    // [グローバル]メンバー情報表示切替フラグ
+    // false ... 集会場 (※デフォルト)
+    // true  ... 全社員表示（ホワイト企業 をぴの里♨）
+    const GATHERINGHUB = false;
+    const WOPICORP     = true;
+    let g_memberDisplay_flg = GATHERINGHUB;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const headerText = document.getElementById('headerText');
+        const tglMemberDisplay = document.getElementById('tglMemberDisplay');
+
+        let isToggled = false;
+
+        function getRandomNumber(max) {
+            return Math.floor(Math.random() * (max + 1));
+        }
+
+        function calculateAttendanceRate(total, present) {
+            return total > 0 ? Math.round((present / total) * 100) : 0;
+        }
+
+        tglMemberDisplay.addEventListener('click', () => {
+            if (isToggled) {
+                headerText.innerHTML = `集会場 (<span id="memberCount">${g_members.length}</span>/16)`;
+            } else {
+                const corpMemberCnt = getRandomNumber(100);
+                const corpInMember = getRandomNumber(corpMemberCnt);
+                headerText.innerHTML = `をぴの里♨（<span id="corpInMember">${corpInMember}</span>/<span id="corpMemberCnt">${corpMemberCnt}</span>)`;
+            }
+            isToggled = !isToggled;
+        });
+    });
+
+    function displayMembers() {
+        let htmlTable = "<table><thead><tr><th>社員番号</th><th>名前</th><th>HR</th><th>MR</th><th>状態</th></tr></thead><tbody>";
+
+        // 状態遷移
+        g_members.forEach((member, index) => {
+            if (member[3] === '貼り主') {
+                statusClass = 'statusHarinushi'; // 貼り主用のクラス
+            } else if (member[3] === '足湯♨') {
+                statusClass = 'statusAshiyu'; // 足湯用のクラス
+            } else if (member[3] === '出社') {
+                statusClass = 'statusCorpIn'; // 出社用のクラス
+            } else if (member[3] === '退社') {
+                statusClass = 'statusCorpOut'; // 退社用のクラス
+            } else {
+                statusClass = 'statusJoin'; // 参加用のクラス
+            }
+
+            htmlTable += `<tr onclick="fillForm(${index})">
+                <td>${index + 1}</td>
+                <td>${member[0]}</td>
+                <td>${member[1]}</td>
+                <td>${member[2]}</td>
+                <td class="${statusClass}">${member[3]}</td>
+            </tr>`;
+        });
+        htmlTable += "</tbody></table>";
+        document.getElementById("member_table").innerHTML = htmlTable;
+
+        // メンバー情報表示切替フラグに応じてた処理
+        if (g_memberDisplay_flg == WOPICORP) {
+            // TODO:全社員表示での出社と社員総数のカウントの反映
+            console.log("WOPICORP: cnt changed");
+        }else{
+            // 集会場参加者の総数
+            console.log("GATHERINGHUB: cnt changed");
+            document.getElementById("memberCount").textContent = g_members.length;
+        }
+    }
+
+    function loadData() {
+        g_members = JSON.parse(localStorage.getItem("members")) || [];
+        quests = JSON.parse(localStorage.getItem("quests")) || [];
+        footBathMembers = JSON.parse(localStorage.getItem("footBathMembers")) || [];
+        displayMembers();
+    }
+
+    document.addEventListener("DOMContentLoaded", loadData);
+</script>
+</body>
+</html>
